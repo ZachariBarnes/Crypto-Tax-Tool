@@ -1,15 +1,13 @@
 # Vidulum Tax-Tool
 
 ## Table of Contents
-- [Vidulum Tax-Tool](#vidulum-tax-tool)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Feature Highlights](#feature-highlights)
-  - [Architecture](#architecture)
-  - [To run locally](#to-run-locally)
-  - [To Run with docker:](#to-run-with-docker)
-  - [Deploying your Infrastructure](#deploying-your-infrastructure)
-  - [Destroying your Infrastructure](#destroying-your-infrastructure)
+- [Overview](#overview)
+- [Feature Highlights](#feature-highlights)
+- [Architecture](#architecture)
+- [To run locally](#to-run-locally)
+- [To Run with docker:](#to-run-with-docker)
+- [Deploying your Infrastructure](#deploying-your-infrastructure)
+- [Destroying your Infrastructure](#destroying-your-infrastructure)
 
 ---
 
