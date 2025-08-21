@@ -1,0 +1,164 @@
+# Vidulum Tax-Tool
+<Create a Table of Contents with links to each heading seciont here>
+<Insert Architecture and Overview Information here>
+
+## To run locally
+
+1. Create .env file with the following properties
+
+        PORT=8080
+        API_KEYS={"keys":[["ETH", "<EtherscanAPIKey>"],["BNB", "<BscScanAPIKey>"]]}
+        NODE_ENV=development
+        SOURCE_EMAIL=<AWS SES verified Email address Required>
+        REGION=us-east-1 #(Or whatever region)
+        ACCESS_KEY=<AWS Access Key
+        SECRET_KEY=<AWS Secret Key>
+        BUCKET_NAME=tax-app-transactions
+        REQUEST_TABLE_NAME=tax-app-requests
+        API=true
+2. Run Npm install  
+   * `npm i`
+3. Run the app with node:  
+   *  use: `npm run start`
+4. Hit the API with postman Requests to `localhost:8080/get-transaction-history/`
+5. Request Body should look like:  
+  
+        {
+            "emailAddress": "Sabin6120@gmail.com",
+            "cutoffDate": "Fri, 1 Jan 2021 00:00:00 GMT",
+            "addresses": [
+                {
+                    "walletAddress": "0xF641063762a63CCb02143a554442ba4003096be1",
+                    "coinSymbol": "ETH"
+                },
+                {
+                    "walletAddress": "v1Q7SrcekFArG2jEihRAQGygeQyPxhWWsg1",
+                    "coinSymbol": "VDL"
+                }
+            ]
+        },
+6. Open another terminal/shell in your project directory
+   * Change the bottom line of your secrets file to
+                API=true
+7. Run the app again from your second terminal. This will simulate running the fat-lambda processor
+   * `npm run start`
+   * This will spin up an app that will pull down the request from docker and process it before terminating itself
+8. Check your email provided in your original API
+9. As an alternative to steps 6-8 you can also post your request to `localhost:8080/process-request` but this endpoint is disable in AWS so it will only work locally
+<hr>
+
+## To Run with docker:
+
+1. Install Docker
+2. Run docker build
+   * `docker build -t vidulum-tax-app .`
+3. Run docker container    
+   * `docker run -p 8080:8080 vidulum-tax-app`  
+4. Hit the API with postman Requests to `localhost:8080/get-transaction-history/`
+5. Request Body should look like:  
+  
+        {
+            "emailAddress": "Sabin6120@gmail.com",
+            "cutoffDate": "Fri, 1 Jan 2021 00:00:00 GMT",
+            "addresses": [
+                {
+                    "walletAddress": "0xF641063762a63CCb02143a554442ba4003096be1",
+                    "coinSymbol": "ETH"
+                },
+                {
+                    "walletAddress": "v1Q7SrcekFArG2jEihRAQGygeQyPxhWWsg1",
+                    "coinSymbol": "VDL"
+                }
+            ]
+        },
+
+
+## Deploying your Infrastructure
+
+1. Install terraform (Chocolately required)
+   * `choco install terraform`
+2. Install AWS CLI
+3. Add AWS credentials to AWS CLI
+4. Install Docker Desktop
+5. Run Docker Desktop as admin (and Make an account if you  dont have one)
+6. Install `Jq`
+   *  `chocolatey install jq`
+7. Install Serverless
+   *  `npm install serverless -g`
+8. Run Terraform
+   *  Run `terraform init`
+   *  Run `terraform apply`
+      * It will ask if it can create a bunch of resources, type `yes`
+      * You will recieve an error that says: "Error attaching policy" ignore this
+   * Run `terraform apply` again. This will attach the above mentioned policy.
+     * type `yes` to the prompt
+9.  ~~Create Secrets.json with this command:~~
+    * ~~`terraform output -json | jq 'with_entries(.value |= .value)' -> secrets.json`~~ *note: this step is now included in the deploy script*
+10. Make sure Docker Desktop is running as administrator (if on windows)
+11. ~~Push your docker container to ECR~~ *note: this step is now included in the deploy script*
+   * ~~Run `npm run docker-push`~~
+   * ~~This may require adding execution permissions on the shell file `docker-pu.sh`~~
+12. ~~Deploy your lambda~~ *note: this step is now included in the deploy script*
+   * ~~Run `serverless deploy`~~
+13. Run the Deploy script: `npm run deploy`
+   * This may require adding execution permissions on the shell file `deploy.sh`
+   * After it completes you will see something like this (You may need to Scroll up in the terminal to see the url):  
+
+            ✔ Service deployed to stack vidulum-tax-tool-dev (352s)  
+            endpoints:
+            GET - https://oqyjtun0xb.execute-api.us-east-1.amazonaws.com/dev/
+            POST - https://oqyjtun0xb.execute-api.us-east-1.amazonaws.com/dev/collect-transaction-history
+            ANY - https://oqyjtun0xb.execute-api.us-east-1.amazonaws.com/dev/{proxy+}
+            functions:
+            app: vidulum-tax-tool-dev-app (15 MB)
+     *  Copy the **POST** url
+14. Send a POST request to the url in postman
+    *  Example request:
+      ```{
+         "emailAddress": "<Your Email address>",
+         "cutoffDate": "Sat, 1 Jan 2022 00:00:00 GMT",
+         "addresses": [
+            {
+                  "walletAddress": "vdl1a053qfm6wsw6xmmpq9ncaxvtfnd9m4757jmx4y ",
+                  "coinSymbol": "VDL"
+            },
+            {
+                  "walletAddress": "t1gdx2tuLtZAKMt4BV7Ax2RCNjqBMzcxDye",
+                  "coinSymbol": "BTCZ"
+            },
+
+            {
+                  "walletAddress": "bze1j26s9s9r576rcdkc8cl6dh5k4she6u572dth7c",
+                  "coinSymbol": "BZE"
+            }
+         ]
+      }```
+   * List of currently supported coins:
+     *   BTCZ, BZE, CMM, DASH, ILC, KMD, LTZ, TENT, GLINK, VDL-L (Legacy VDL), VRSC, FLUX, ZEN, ZER, ETH, BNB, BTC, DGB, DOGE, FIRO, GRS, LTC, RITO, RVN, SCRIV, SSS, VGC, ZEC, VDL
+15. Log into AWS to see the ECS running.
+16. Check your email in a few minutes.
+
+## Destroying your Infrastructure
+There may come a time when you want to destroy the AWS resources you've buil either to save costs temporarily or sunset the project. These are the instructions to do so.
+
+1. Run `severless remove`
+   1. This will remove the lambda and API gateway
+   2. this command typically takes a long time to run (15-20 minutes). Don't worry.
+   3. Run `terraform destroy`
+      1. This will destroy 99% of our resouces but you may need to log into AWS and manually delete the IAM role for the event bridge and any files created in the S3 bucket. (You can also try to run the terrafom destroy command again to delete the role. Haven't tested this yet.)
+         * Fourtunately these remaining resources should not cost anything if you choose to leave them. (At least under the current AWS free tier) 
+
+<!-- 4. Connect docker to ECR
+   * `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${aws_account_id}.dkr.ecr.${region}.amazonaws.com`
+   * Paramaterized example: `docker login -u AWS -p $(aws ecr get-login-password) https://$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-east-1.amazonaws.com`
+1. Docker build .
+2. Tag docker image
+   1. `docker images` to get the image_id of your container
+   2. `docker tag <image_id> $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-east-1.amazonaws.com/tax-app-repo:latest`
+3. push docker image into AWS elastic container registry
+   1. `docker push $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-east-1.amazonaws.com/tax-app-repo`
+4. 
+
+
+ -->
+

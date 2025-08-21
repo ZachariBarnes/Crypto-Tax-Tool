@@ -1,0 +1,52 @@
+{
+  "name": "vidulum-tax-tool",
+  "version": "1.0.1",
+  "description": "A tool for pulling transactions from block explorers for the purpose of creating tax documents and spreadsheets",
+  "main": "src/index.js",
+  "scripts": {
+    "prod": "NODE_ENV=production node --max-old-space-size=2048 src/index.js",
+    "start": "node --max-old-space-size=2048 src/index.js",
+    "dev": "nodemon --max-old-space-size=2048 ./src/index.js",
+    "lint": "node ./node_modules/eslint/bin/eslint.js src/**/*.js --fix",
+    "deploy": "bash deploy.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vidulum/tax-tool.git"
+  },
+  "keywords": [
+    "tax",
+    "crypto",
+    "transactions",
+    "tracker",
+    "blockchain"
+  ],
+  "type": "module",
+  "author": "Zachari Barnes, Corey Miller, Bridget Vandenbosch",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/vidulum/tax-tool/issues"
+  },
+  "homepage": "https://github.com/vidulum/tax-tool#readme",
+  "devDependencies": {
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "jest": "^27.3.1"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1082.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "fs": "^0.0.1-security",
+    "got": "^11.8.2",
+    "mimemessage": "^1.0.5",
+    "nodemon": "^2.0.14",
+    "npmlog": "^5.0.1",
+    "serverless-http": "^2.7.0",
+    "uuid": "^8.3.2"
+  }
+}

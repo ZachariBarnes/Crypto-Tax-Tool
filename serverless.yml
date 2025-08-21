@@ -1,0 +1,90 @@
+service: vidulum-tax-tool
+useDotenv: true
+custom: # add these two lines
+  environment: ${file(secrets.json)}
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: ${file(secrets.json):REGION}
+  memorySize: 512
+package: 
+  patterns:
+    - '!.terraform'
+    - '!*.tf*'
+    - '!Dockerfile'
+    - '!output'
+    - '!/src/explorer-api'
+functions:
+  app:
+    handler: src/lambda.handler
+    role: ${file(secrets.json):LambdaRoleArn}
+    timeout: 30
+    environment: ${file(secrets.json)}
+    vpc:
+      securityGroupIds:
+        - ${file(secrets.json):security_group_id}
+      subnetIds:
+        - ${file(secrets.json):subnet_id}
+    events: 
+      - http: 
+          path: /
+          method: GET
+          cors: true
+      - http: 
+          path: /supported-coins
+          method: GET
+          cors: true
+      - http: 
+          path: /collect-transaction-history/
+          method: POST
+          cors: true   
+      - http: 
+          path: /{proxy+}
+          method: ANY
+          cors: true
+
+# # you can add CloudFormation resource templates here
+# resources:
+#   Resources:
+#     TaxAppLambdaRole:
+#       Type: AWS::IAM::Role
+#       Properties:
+#         RoleName: TaxAppLambda
+#         AssumeRolePolicyDocument:
+#           Version: '2012-10-17'
+#           Statement:
+#             - Effect: Allow
+#               Principal:
+#                 Service:
+#                   - lambda.amazonaws.com
+#               Action: sts:AssumeRole
+#         Policies:
+#           - PolicyName: DynamoDBWriteAccess
+#             PolicyDocument:
+#               Version: '2012-10-17'
+#               Statement:
+#                 - Effect: Allow
+#                   Action:
+#                     - logs:CreateLogGroup
+#                     - logs:CreateLogStream
+#                     - logs:PutLogEvents
+#                   Resource: 
+#                     - 'Fn::Join':
+#                       - ':'
+#                       -
+#                         - 'arn:aws:logs'
+#                         - Ref: 'AWS::Region'
+#                         - Ref: 'AWS::AccountId'
+#                         - 'log-group:/aws/lambda/*:*:*'
+#                 - Effect: Allow
+#                   Action:
+#                     - dynamodb:PutItem
+#                     - dynamodb:GetItem
+#                   Resource:
+#                     - "arn:aws:dynamodb:us-east-1:${local.account_id}:table/tax-app-requests"
+#                 - Effect: Allow
+#                   Action:
+#                     - events:PutEvents
+#                   Resource:
+#                     - "arn:aws:events:us-east-1:${local.account_id}:event-bus/default"
