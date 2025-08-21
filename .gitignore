@@ -1,0 +1,12 @@
+.env
+node_modules
+dist
+.serverless
+.terraform
+output
+secrets.json
+.environment
+.terraform.tfstate
+.terraform.tfstate.backup
+terraform.tfstate
+terraform.tfstate.backup
